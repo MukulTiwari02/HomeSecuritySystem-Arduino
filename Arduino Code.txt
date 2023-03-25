@@ -1,0 +1,109 @@
+/*  Human Detector Within Specified Range Using PIR Motion Sensor And Ultrasonic Distance Sensor
+ * 
+ *  TeeZero7
+ * 
+ *  Developed By TeeZero7
+ 	*  Mukul Tiwari
+ 	*  Ujjwal Saxena
+ 	*  Ankit Chauhan
+   
+ * Components
+ * ----------
+ 	*  - Arduino Uno
+ 	*  - PIR Sensor
+	*  - Ultrasonic Distance Sensor
+ 	*  - An LED
+ 	*  - A 220 Ohm resistor for the LED
+ 	*  - A Buzzer
+   
+ 
+ * Connections
+ *  --------------------------------------------------
+ *  	Break out   			|    Arduino Uno
+ *  --------------------------------------------------
+ *      PIR VCC                 |        5V
+ *      PIR GND                 |        GND
+ *      PIR OUT                 |        3
+ *      Ultrasonic VCC          |        5V
+ *      Ultrasonic GND          |        GND
+ *      Ultrasonic Echo         |        12
+ *      Ultrasonic Trigger      |        13
+ 
+ 
+ * We have also connected an LED to simulate a controlled device.
+ 
+              220 Ohm
+       3 ----/\/\/\/\----(LED |)----GND
+   
+ */
+ 
+int ledPin   = 4;       // choose the pin for the LED
+int inputPin = 3;       // choose the input pin (for PIR sensor)
+int pirState = LOW;     // we start, assuming no motion detected
+int val      = 0;       // variable for reading the pin status
+int echoPin = 12;       // variable for echo pin of Distanse Sensor
+int trigPin = 13;       // variable for trigger pin of Distanse Sensor
+int buzzer = 8;         // choose pin for the buzzer
+
+//the time we give the PIR Sensor to calibrate (10-60 secs according to the datasheet)
+int calibrationTime = 30; //This time is in seconds
+ 
+void setup() {
+  pinMode(ledPin, OUTPUT);     // declare LED as output
+  pinMode(inputPin, INPUT);    // declare PIR Sensor as input
+  pinMode(trigPin, OUTPUT);    // declare Distance Sensor's trigger pin as output
+  pinMode(echoPin, INPUT);     // declare Distance Sensor's echo pin as input
+  pinMode(buzzer, OUTPUT);     // declare buzzer as output
+ 
+  Serial.begin(9600);
+  
+  Serial.println("Waiting for the PIR sensor to warm up.");
+  Serial.println("PIR SENSOR ACTIVE");
+}
+long duration, distance;
+
+long calculateDistance() {
+  digitalWrite(trigPin, LOW); 
+  delayMicroseconds(2); 
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration/2) / 29.1;
+  return distance;
+}
+
+void loop() {
+  calculateDistance();
+  if (distance >= 10){   //Checking if door is opened that is distance is increased
+    Serial.println("BedRoom Door Opened");
+    //Serial.println(distance);
+    digitalWrite(ledPin, HIGH);
+    tone(buzzer, 700);
+    delay(400);
+    tone(buzzer, 600);
+    delay(350);
+    noTone(buzzer);
+    digitalWrite(ledPin, LOW);
+  }
+  else {
+    Serial.println("BedRoom Door closed, Room secure");
+  }
+  delay(10);
+  
+   val = digitalRead(inputPin);
+  if(val== 1)
+  {
+    Serial.println("Motion detected at entrance gate");
+    digitalWrite(ledPin, HIGH);
+    tone(buzzer, 600);
+    delay(5000);
+    noTone(buzzer);
+    digitalWrite(ledPin, LOW);
+    
+  }
+  else
+  {
+    Serial.println("");
+  }
+}
